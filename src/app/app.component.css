@@ -1,0 +1,117 @@
+html,body{
+  font-family: 'Lobster Two', cursive;
+  margin:0px;
+  height:100%;
+  width:100%;
+  background-color:#222;
+  color:#ccc;
+}
+header{
+  min-height:50%;
+  background-color:#83AF9B;
+}
+#header-text{  
+  color:white;
+}
+.h1{
+  font-size:50px;  
+}
+
+@media only screen and (max-width: 40em) { 
+
+}
+
+
+
+
+
+
+
+
+
+$height: 80px;
+$m:#48CFAD;
+$md:#37BC9B;
+
+body {
+   min-height: 100vh;
+   margin: 0;
+   background-color: #F5F7FA;
+   .header {
+      width: 100%;
+      position: fixed;
+      background-color: #ffffff;
+      &:before {
+         position: absolute;
+         content: '';
+         top: calc(100% - 1px);
+         left: 0px;
+         right: 0px;
+         height: 1px;
+         background-color: #E6E9ED;
+         z-index: 1000;
+         opacity: 0.1;
+         pointer-events: none;
+      }
+      .identity {
+         position: relative;
+         background-color: $m;
+         height: $height;
+         width: 480px;
+         min-width:480px;
+         transform: translateX(-50%);//This is to help the distribution density of the particles.
+         margin-right:-260px;
+         overflow:hidden;
+         svg {
+            position: absolute;
+            top: 50%;
+            left: 68%;
+            transform: translate(-50%, -50%);
+            height: 32px;
+            pointer-events:none;
+         }
+         &:hover {
+            background-color: $md;
+         }
+         &:before {
+            content: '';
+            position: absolute;
+            top:0px;
+            right:0px;
+            width:0px;
+            height:0px;
+            border:$height transparent solid;
+            border-bottom-color:#ffffff;
+            border-top-width:0px;
+            border-right-width:0px;
+            pointer-events:none;
+         }
+      }
+      .menu {
+         cursor: pointer;
+         width: 20px;
+         height: 20px;
+         position: relative;
+         padding:30px;
+         .icon {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 20px;
+            height: 4px;
+            border-radius: 2px;
+            background-color: $m;
+            box-shadow: 0 -8px 0 0 $m, 0 8px 0 0 $m;
+         }
+      }
+   }
+}
+
+.splitter {
+  background-color:#343436;
+box-shadow: 0 0 1px black;
+border-bottom: 1px solid black;
+height: 17px;
+
+}
