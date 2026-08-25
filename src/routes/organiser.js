@@ -90,6 +90,7 @@ router.get('/events/:id', loadOwnedEvent, (req, res) => {
     memberCount: m.countMembers(req.event.id),
     emptyCount: m.membersWithEmptyWishlist(req.event.id).length,
     unnotifiedCount: req.event.status === 'drawn' ? m.membersUnnotified(req.event.id).length : 0,
+    needsRedraw: req.event.status === 'drawn' ? m.membersNeedingRedraw(req.event.id) : [],
     minMembers: config.minMembers, caps: config.caps,
     mailEnabled: config.mail.enabled, emailCapped: emailBlocked(),
     msg: req.query.msg || null, error: req.query.err || null,
@@ -176,14 +177,24 @@ router.post('/events/:id/resend-unnotified', loadOwnedEvent, async (req, res) =>
   const pending = m.membersUnnotified(req.event.id);
   if (!pending.length) return res.redirect(back(req, '?msg=' + q('Everyone has already been emailed their match.')));
   const nameById = new Map(m.listMembers(req.event.id).map((x) => [x.id, x.name]));
-  let sent = 0; let capped = false;
+  let sent = 0; let failed = 0; let skipped = 0; let capped = false;
   for (const mem of pending) {
-    const r = await sendDrawNotification(req.event, mem, nameById.get(mem.assigned_to_member_id));
+    const recipientName = nameById.get(mem.assigned_to_member_id);
+    // Recipient deleted since the draw: sending would email "undefined" and
+    // wrongly mark it delivered. Skip; the re-draw banner covers these.
+    if (!recipientName) { skipped += 1; continue; }
+    const r = await sendDrawNotification(req.event, mem, recipientName);
     if (r.ok) { m.markNotified(mem.id); sent += 1; }
-    if (r.limit || r.blocked) { capped = true; break; }
+    else if (r.limit || r.blocked) { capped = true; break; }
+    else { failed += 1; }
     await sleep(550);
   }
-  res.redirect(back(req, '?msg=' + q(capped ? `Sent ${sent} before hitting the email limit.` : `Sent ${sent} draw email(s).`)));
+  const parts = [`Sent ${sent} draw email(s).`];
+  if (capped) parts.push('Stopped at the monthly email limit.');
+  if (failed) parts.push(`${failed} failed to send — check those addresses.`);
+  if (skipped) parts.push(`${skipped} skipped (their match was removed — re-draw).`);
+  const key = (failed || capped || skipped) ? '?err=' : '?msg=';
+  res.redirect(back(req, key + q(parts.join(' '))));
 });
 
 // ─── Nudges ──────────────────────────────────────────────────

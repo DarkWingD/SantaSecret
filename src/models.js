@@ -197,6 +197,18 @@ function membersUnnotified(eventId) {
   `).all(eventId);
 }
 
+// Members on a drawn event with no usable assignment: added after the draw
+// (assigned NULL) or their recipient was deleted (dangling id). Either way
+// the only fix is a re-draw, so surface them rather than silently skipping.
+function membersNeedingRedraw(eventId) {
+  return db.prepare(`
+    SELECT m.* FROM members m
+    LEFT JOIN members r ON r.id = m.assigned_to_member_id
+    WHERE m.event_id = ? AND (m.assigned_to_member_id IS NULL OR r.id IS NULL)
+    ORDER BY m.created_at
+  `).all(eventId);
+}
+
 // Members with an empty wishlist (for nudges).
 function membersWithEmptyWishlist(eventId) {
   return db.prepare(`
@@ -223,5 +235,5 @@ module.exports = {
   // wishlist
   addWishlistItem, listWishlist, getWishlistItem, updateWishlistItem, deleteWishlistItem, countWishlist,
   // status
-  memberStatus, membersWithEmptyWishlist, membersUnnotified,
+  memberStatus, membersWithEmptyWishlist, membersUnnotified, membersNeedingRedraw,
 };
