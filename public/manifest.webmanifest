@@ -1,0 +1,14 @@
+{
+  "name": "Secret Santa",
+  "short_name": "Santa",
+  "description": "Run a Secret Santa — draw names, share wishlists, keep the secret",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#faf7f2",
+  "theme_color": "#0f3d2e",
+  "icons": [
+    { "src": "/favicon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" },
+    { "src": "/apple-touch-icon.png", "sizes": "180x180", "type": "image/png", "purpose": "any maskable" }
+  ]
+}

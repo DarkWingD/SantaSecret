@@ -69,6 +69,15 @@
     </form>
     <% } %>
   </div>
+  <% if (typeof unnotifiedCount !== 'undefined' && unnotifiedCount > 0) { %>
+    <div class="banner banner-error" style="margin-top:12px">
+      ⚠ <%= unnotifiedCount %> member<%= unnotifiedCount > 1 ? 's' : '' %> never received their draw email.
+      <form class="inline-form" method="post" action="/organiser/events/<%= event.id %>/resend-unnotified" style="display:inline">
+        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+        <button class="btn btn-sm" <%= emailCapped ? 'disabled' : '' %>>Resend now</button>
+      </form>
+    </div>
+  <% } %>
   <% if (!members.length) { %>
     <p class="muted">No members yet — add some above.</p>
   <% } else { %>

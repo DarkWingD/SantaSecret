@@ -89,6 +89,7 @@ router.get('/events/:id', loadOwnedEvent, (req, res) => {
     exclusions: m.listExclusions(req.event.id),
     memberCount: m.countMembers(req.event.id),
     emptyCount: m.membersWithEmptyWishlist(req.event.id).length,
+    unnotifiedCount: req.event.status === 'drawn' ? m.membersUnnotified(req.event.id).length : 0,
     minMembers: config.minMembers, caps: config.caps,
     mailEnabled: config.mail.enabled, emailCapped: emailBlocked(),
     msg: req.query.msg || null, error: req.query.err || null,
@@ -164,6 +165,25 @@ router.post('/events/:id/draw', loadOwnedEvent, async (req, res) => {
   }
   const note = capped ? `Drawn! Emailed ${sent} member(s) before hitting the email limit.` : `Drawn! Emailed all ${sent} member(s) their match.`;
   res.redirect(back(req, '?msg=' + q(note)));
+});
+
+// Resend the draw email to members who never received it — the draw's send
+// loop stops on the monthly email cap or a crash, and previously the only
+// recovery was a full re-draw (which reshuffles everyone).
+router.post('/events/:id/resend-unnotified', loadOwnedEvent, async (req, res) => {
+  if (req.event.status !== 'drawn') return res.redirect(back(req));
+  if (emailBlocked()) return res.redirect(back(req, '?err=' + q('Email is paused this month (monthly limit reached).')));
+  const pending = m.membersUnnotified(req.event.id);
+  if (!pending.length) return res.redirect(back(req, '?msg=' + q('Everyone has already been emailed their match.')));
+  const nameById = new Map(m.listMembers(req.event.id).map((x) => [x.id, x.name]));
+  let sent = 0; let capped = false;
+  for (const mem of pending) {
+    const r = await sendDrawNotification(req.event, mem, nameById.get(mem.assigned_to_member_id));
+    if (r.ok) { m.markNotified(mem.id); sent += 1; }
+    if (r.limit || r.blocked) { capped = true; break; }
+    await sleep(550);
+  }
+  res.redirect(back(req, '?msg=' + q(capped ? `Sent ${sent} before hitting the email limit.` : `Sent ${sent} draw email(s).`)));
 });
 
 // ─── Nudges ──────────────────────────────────────────────────

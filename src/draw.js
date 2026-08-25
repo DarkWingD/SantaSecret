@@ -3,9 +3,13 @@
 // receives from exactly one other person, nobody draws themselves, and no excluded pair is
 // placed adjacent (giver -> receiver). A single cycle also avoids trivial 2-way swaps for n >= 3.
 
+const crypto = require('crypto');
+
+// Fisher-Yates with a CSPRNG: Math.random() is predictable enough in principle
+// to reconstruct assignments, and the whole point of this app is the secret.
 function shuffle(arr) {
   for (let i = arr.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
+    const j = crypto.randomInt(i + 1);
     [arr[i], arr[j]] = [arr[j], arr[i]];
   }
   return arr;

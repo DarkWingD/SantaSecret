@@ -9,6 +9,8 @@
   <title><%= typeof title !== 'undefined' ? title : 'Secret Santa' %> · Secret Santa</title>
   <% var _v = (typeof assetVer !== 'undefined' && assetVer) ? ('?v=' + assetVer) : ''; %>
   <link rel="icon" href="/favicon.svg<%= _v %>" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+  <link rel="manifest" href="/manifest.webmanifest">
   <link rel="stylesheet" href="/app.css<%= _v %>">
   <script src="/app.js<%= _v %>"></script>
   <% if (typeof turnstile !== 'undefined' && turnstile) { %>

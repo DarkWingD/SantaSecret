@@ -188,6 +188,15 @@ function memberStatus(eventId) {
     FROM members m WHERE m.event_id=? ORDER BY m.created_at, m.id
   `).all(eventId);
 }
+// Members never emailed their draw result (crash/limit during the send loop).
+function membersUnnotified(eventId) {
+  return db.prepare(`
+    SELECT m.* FROM members m
+    WHERE m.event_id=? AND m.notified_at IS NULL AND m.assigned_to_member_id IS NOT NULL
+    ORDER BY m.created_at
+  `).all(eventId);
+}
+
 // Members with an empty wishlist (for nudges).
 function membersWithEmptyWishlist(eventId) {
   return db.prepare(`
@@ -214,5 +223,5 @@ module.exports = {
   // wishlist
   addWishlistItem, listWishlist, getWishlistItem, updateWishlistItem, deleteWishlistItem, countWishlist,
   // status
-  memberStatus, membersWithEmptyWishlist,
+  memberStatus, membersWithEmptyWishlist, membersUnnotified,
 };

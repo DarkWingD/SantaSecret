@@ -14,8 +14,18 @@ function rateLimited(token) {
   arr.push(nowMs); editHits.set(token, arr);
   return false;
 }
+// Sweep stale tokens hourly so the map doesn't grow for the life of the process.
+setInterval(() => {
+  const cutoff = Date.now() - 3600 * 1000;
+  for (const [token, arr] of editHits) {
+    if (!arr.some((t) => t > cutoff)) editHits.delete(token);
+  }
+}, 3600 * 1000).unref();
 
 function loadMember(req, res, next) {
+  // Who-you're-buying-for behind a capability URL: never cache it, especially
+  // on the shared family devices these links get opened on.
+  res.set('Cache-Control', 'no-store');
   const member = m.getMemberByToken(req.params.token);
   if (!member) return res.status(404).render('member/notfound', { title: 'Not found' });
   req.member = member;
