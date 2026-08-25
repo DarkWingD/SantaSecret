@@ -1,0 +1,26 @@
+<div class="field">
+  <label for="name">Event name</label>
+  <input type="text" id="name" name="name" maxlength="120" required value="<%= values.name || '' %>" placeholder="e.g. Johnsons Secret Santa">
+</div>
+<div class="row2">
+  <div class="field">
+    <label for="exchange_date">Exchange date</label>
+    <input type="date" id="exchange_date" name="exchange_date" value="<%= values.exchange_date || '' %>">
+  </div>
+  <div class="field">
+    <label for="budget">Budget</label>
+    <input type="text" id="budget" name="budget" maxlength="60" value="<%= values.budget || '' %>" placeholder="e.g. $30">
+  </div>
+</div>
+<div class="field">
+  <label for="location">Location</label>
+  <input type="text" id="location" name="location" maxlength="300" value="<%= values.location || '' %>" placeholder="Where you'll exchange gifts">
+</div>
+<div class="field">
+  <label for="wishlist_deadline">Wishlist deadline (optional)</label>
+  <input type="date" id="wishlist_deadline" name="wishlist_deadline" value="<%= values.wishlist_deadline || '' %>">
+</div>
+<div class="field">
+  <label for="details">Details (optional)</label>
+  <textarea id="details" name="details" maxlength="4000" placeholder="Anything else members should know"><%= values.details || '' %></textarea>
+</div>

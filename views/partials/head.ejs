@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="color-scheme" content="light dark">
+  <meta name="theme-color" content="#0f3d2e">
+  <meta name="robots" content="noindex, nofollow">
+  <title><%= typeof title !== 'undefined' ? title : 'Secret Santa' %> · Secret Santa</title>
+  <% var _v = (typeof assetVer !== 'undefined' && assetVer) ? ('?v=' + assetVer) : ''; %>
+  <link rel="icon" href="/favicon.svg<%= _v %>" type="image/svg+xml">
+  <link rel="stylesheet" href="/app.css<%= _v %>">
+  <script src="/app.js<%= _v %>"></script>
+  <% if (typeof turnstile !== 'undefined' && turnstile) { %>
+  <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+  <% } %>
+</head>
+<body>
+  <div class="snow" aria-hidden="true"></div>
+  <div class="controls">
+    <button id="snow-toggle" class="pill-btn" type="button" aria-label="Toggle snow" title="Toggle snow">❄</button>
+    <button id="theme-toggle" class="pill-btn" type="button" aria-label="Colour scheme">🌗 Auto</button>
+  </div>
+  <main class="page<%= (typeof wide !== 'undefined' && wide) ? ' page-wide' : '' %>">

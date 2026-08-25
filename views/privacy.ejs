@@ -1,0 +1,19 @@
+<%- include('partials/head', { title: 'Privacy' }) %>
+<div class="card">
+  <h1>Privacy &amp; terms</h1>
+  <p class="muted">A small, personal project for friends &amp; family. Use at your own risk.</p>
+  <h2>What we collect</h2>
+  <ul>
+    <li><strong>Organisers:</strong> your email (via Cloudflare Access) and the events you create.</li>
+    <li><strong>Members:</strong> the name &amp; email the organiser adds, your wishlist items, and who
+      you were assigned to buy for. Members never see who is buying for them.</li>
+  </ul>
+  <p>No member accounts, and the app does not log your IP or device.</p>
+  <h2>Retention</h2>
+  <p>Events and all their data are automatically deleted about
+    <strong><%= (typeof purgeDays !== 'undefined' ? purgeDays : 30) %> days</strong> after the exchange date.</p>
+  <h2>Your link</h2>
+  <p>Your member link is private — anyone with it can see your assignment and wishlist, so don't share it.</p>
+</div>
+<p><a class="btn" href="/" data-back>← Back</a></p>
+<%- include('partials/foot') %>

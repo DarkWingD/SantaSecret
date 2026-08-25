@@ -1,0 +1,137 @@
+<%- include('../partials/head', { title: event.name }) %>
+<%- include('../partials/appnav') %>
+<% var memberUrl = function (m) { return baseUrl + '/m/' + m.token; }; %>
+
+<div style="display:flex; justify-content:space-between; gap:10px; align-items:flex-start; margin-bottom:6px">
+  <h1 style="margin:0"><%= event.name %></h1>
+  <span class="tag tag-<%= event.status %>"><%= event.status %></span>
+</div>
+<% if (event.exchange_date) { %><div class="meta"><span class="ico">🎄</span><span><%= fmtDate(event.exchange_date) %></span></div><% } %>
+<% if (event.location) { %><div class="meta"><span class="ico">📍</span><span><%= event.location %></span></div><% } %>
+<% if (event.budget) { %><div class="meta"><span class="ico">💰</span><span><%= event.budget %></span></div><% } %>
+
+<% if (msg) { %><div class="banner banner-success" style="margin-top:12px"><%= msg %></div><% } %>
+<% if (error) { %><div class="banner banner-error" style="margin-top:12px"><%= error %></div><% } %>
+<% if (emailCapped) { %><div class="banner banner-error" style="margin-top:12px">⚠ The free email limit has been reached this month — drawing &amp; nudges are paused until it resets.</div><% } %>
+<% if (!mailEnabled) { %><div class="banner banner-info" style="margin-top:12px">Email isn't configured on the server, so members won't be emailed their match.</div><% } %>
+
+<div class="btn-row" style="margin:14px 0">
+  <a class="btn btn-sm" href="/organiser/events/<%= event.id %>/edit">Edit</a>
+  <a class="btn btn-sm" href="/organiser/events/<%= event.id %>/export.csv">Export CSV</a>
+  <% if (event.status !== 'closed') { %>
+  <form class="inline-form" method="post" action="/organiser/events/<%= event.id %>/close" data-confirm="Close this event?">
+    <input type="hidden" name="_csrf" value="<%= csrfToken %>"><button class="btn btn-sm btn-danger">Close</button>
+  </form>
+  <% } %>
+</div>
+
+<!-- The draw -->
+<div class="card draw-card">
+  <% if (event.status === 'drawn') { %>
+    <div class="row-between">
+      <div><strong>✓ Names drawn</strong><div class="muted small">Everyone was emailed their match.</div></div>
+      <form class="inline-form" method="post" action="/organiser/events/<%= event.id %>/draw" data-confirm="Re-draw and email everyone a NEW match? This replaces the current draw.">
+        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+        <button class="btn btn-sm" <%= emailCapped ? 'disabled' : '' %>>Re-draw</button>
+      </form>
+    </div>
+  <% } else { %>
+    <div class="row-between">
+      <div><strong>Ready to draw?</strong><div class="muted small"><%= memberCount %> member<%= memberCount === 1 ? '' : 's' %> · need at least <%= minMembers %></div></div>
+      <form class="inline-form" method="post" action="/organiser/events/<%= event.id %>/draw" data-confirm="Draw names and email everyone their match now?">
+        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+        <button class="btn btn-primary" <%= (memberCount < minMembers || emailCapped) ? 'disabled' : '' %>>🎲 Draw names</button>
+      </form>
+    </div>
+  <% } %>
+</div>
+
+<!-- Members -->
+<div class="card">
+  <h2>Add a member</h2>
+  <form method="post" action="/organiser/events/<%= event.id %>/members">
+    <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+    <div class="row2">
+      <div class="field"><label for="member_name">Name</label><input type="text" id="member_name" name="member_name" maxlength="120" required <%= msg ? 'autofocus' : '' %>></div>
+      <div class="field"><label for="member_email">Email</label><input type="email" id="member_email" name="member_email" maxlength="200" required></div>
+    </div>
+    <button class="btn btn-primary" type="submit">Add member</button>
+    <div class="hint" style="margin-top:6px">They'll be emailed their match when you draw. Max <%= caps.membersPerEvent %>.</div>
+  </form>
+</div>
+
+<div class="card">
+  <div class="row-between">
+    <h2 style="margin:0">Members (<%= members.length %>)</h2>
+    <% if (emptyCount > 0 && event.status === 'drawn') { %>
+    <form class="inline-form" method="post" action="/organiser/events/<%= event.id %>/nudge" data-confirm="Email a wishlist reminder to <%= emptyCount %> member(s) with an empty list?">
+      <input type="hidden" name="_csrf" value="<%= csrfToken %>"><button class="btn btn-sm" <%= emailCapped ? 'disabled' : '' %>>Nudge <%= emptyCount %> empty</button>
+    </form>
+    <% } %>
+  </div>
+  <% if (!members.length) { %>
+    <p class="muted">No members yet — add some above.</p>
+  <% } else { %>
+    <table class="table">
+      <thead><tr><th>Name</th><th>Email</th><th>List</th><th>Opened</th><th></th></tr></thead>
+      <tbody>
+        <% members.forEach(function (mem) { %>
+        <tr>
+          <td><%= mem.name %></td>
+          <td class="small">
+            <form class="inline-form" method="post" action="/organiser/events/<%= event.id %>/members/<%= mem.id %>/email" style="display:flex; gap:4px; align-items:center">
+              <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+              <input type="email" name="email" value="<%= mem.email %>" maxlength="200" style="width:150px; padding:4px 6px; font-size:.8rem">
+              <button class="btn btn-sm" title="Save email">Save</button>
+            </form>
+          </td>
+          <td class="small"><%= mem.wishlist_count %></td>
+          <td class="small"><%= mem.opened_at ? '✓' : '—' %></td>
+          <td style="white-space:nowrap">
+            <% if (event.status === 'drawn') { %>
+            <form class="inline-form" method="post" action="/organiser/events/<%= event.id %>/members/<%= mem.id %>/nudge" data-confirm="Email <%= mem.name %> a wishlist reminder?">
+              <input type="hidden" name="_csrf" value="<%= csrfToken %>"><button class="btn btn-sm" title="Nudge" <%= emailCapped ? 'disabled' : '' %>>✉</button>
+            </form>
+            <% } %>
+            <form class="inline-form" method="post" action="/organiser/events/<%= event.id %>/members/<%= mem.id %>/delete" data-confirm="Remove <%= mem.name %>? Re-draw if you already drew.">
+              <input type="hidden" name="_csrf" value="<%= csrfToken %>"><button class="btn btn-sm btn-danger" title="Remove">✕</button>
+            </form>
+          </td>
+        </tr>
+        <% }) %>
+      </tbody>
+    </table>
+  <% } %>
+</div>
+
+<!-- Exclusions -->
+<div class="card">
+  <h2>Exclusions</h2>
+  <p class="muted small">Stop two people drawing each other (e.g. couples). The draw will respect these.</p>
+  <% if (members.length >= 2) { %>
+  <form method="post" action="/organiser/events/<%= event.id %>/exclusions" style="display:flex; gap:8px; flex-wrap:wrap; align-items:center">
+    <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+    <select name="member_a"><% members.forEach(function (mem) { %><option value="<%= mem.id %>"><%= mem.name %></option><% }) %></select>
+    <span class="muted">⇎</span>
+    <select name="member_b"><% members.forEach(function (mem) { %><option value="<%= mem.id %>"><%= mem.name %></option><% }) %></select>
+    <button class="btn btn-sm" type="submit">Add pair</button>
+  </form>
+  <% } else { %><p class="muted small">Add at least 2 members first.</p><% } %>
+  <% if (exclusions.length) { %>
+  <ul class="excl-list">
+    <% exclusions.forEach(function (x) { %>
+    <li>
+      <span><%= x.a_name %> ⇎ <%= x.b_name %></span>
+      <form class="inline-form" method="post" action="/organiser/events/<%= event.id %>/exclusions/<%= x.id %>/delete">
+        <input type="hidden" name="_csrf" value="<%= csrfToken %>"><button class="btn btn-sm btn-danger" title="Remove">✕</button>
+      </form>
+    </li>
+    <% }) %>
+  </ul>
+  <% } %>
+</div>
+
+<p class="muted small center">🔒 Who-drew-whom is hidden — even from you.</p>
+<p><a href="/organiser">← Back to your events</a></p>
+
+<%- include('../partials/foot') %>

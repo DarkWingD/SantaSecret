@@ -1,0 +1,86 @@
+<%- include('../partials/head', { title: event.name }) %>
+<% var wlName = function (it) { %><% if (it.link) { %><a href="<%= it.link %>" target="_blank" rel="noopener noreferrer"><%= it.name %> ↗</a><% } else { %><%= it.name %><% } %><% }; %>
+
+<div class="card guest-head">
+  <div class="eyebrow">Secret Santa</div>
+  <h1><%= event.name %></h1>
+  <% if (event.exchange_date) { %><div class="meta center-meta"><span class="ico">🎄</span><span><%= fmtDate(event.exchange_date) %></span></div><% } %>
+  <% if (event.location) { %><div class="meta center-meta"><span class="ico">📍</span><span><%= event.location %></span></div><% } %>
+  <% if (event.budget) { %><div class="meta center-meta"><span class="ico">💰</span><span><%= event.budget %></span></div><% } %>
+  <% if (event.details) { %><p style="margin-top:10px; white-space:pre-line"><%= event.details %></p><% } %>
+</div>
+
+<% if (typeof error !== 'undefined' && error) { %><div class="banner banner-error"><%= error %></div><% } %>
+<% if (closed) { %><div class="banner banner-info">This Secret Santa has been closed.</div><% } %>
+
+<% if (drawn && !closed) { %>
+  <% if (!revealed) { %>
+    <div class="reveal reveal-wrapped" id="reveal">
+      <div class="reveal-gift" id="reveal-gift">🎁</div>
+      <p class="reveal-hint">Tap to reveal who you're buying for…</p>
+      <form method="post" action="/m/<%= member.token %>/reveal" id="reveal-form">
+        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+        <button class="btn btn-primary btn-block" id="reveal-btn" type="submit">Reveal 🎁</button>
+      </form>
+    </div>
+  <% } else { %>
+    <div class="reveal reveal-open">
+      <div class="reveal-eyebrow">You're buying for</div>
+      <div class="reveal-name">🎁 <%= recipient ? recipient.name : '(not assigned)' %></div>
+    </div>
+    <div class="card">
+      <h2><%= recipient ? recipient.name : 'Their' %>'s wishlist</h2>
+      <% if (!recipientWishlist.length) { %>
+        <p class="muted"><%= recipient ? recipient.name : 'They' %> hasn't added any ideas yet — check back later.</p>
+      <% } else { %>
+        <ul class="wishlist">
+          <% recipientWishlist.forEach(function (it) { %>
+            <li><span class="wl-name">🎀 <%- wlName(it) %></span><% if (it.note) { %><span class="wl-note"><%= it.note %></span><% } %></li>
+          <% }) %>
+        </ul>
+      <% } %>
+    </div>
+  <% } %>
+<% } else if (!closed) { %>
+  <div class="banner banner-info">The draw hasn't happened yet. Add your wishlist below so your Secret Santa knows what you'd like!</div>
+<% } %>
+
+<% if (!closed) { %>
+<div class="card" id="mywishlist">
+  <h2>Your wishlist ✏️</h2>
+  <p class="muted small">Ideas your (secret) Santa will see. Add as many as you like.</p>
+  <% if (myWishlist.length) { %>
+    <div class="wl-mine">
+      <% myWishlist.forEach(function (it) { %>
+      <div class="wl-item">
+        <div class="wl-main"><div class="wl-name"><%- wlName(it) %></div><% if (it.note) { %><div class="wl-note"><%= it.note %></div><% } %></div>
+        <div class="wl-actions">
+          <details class="wl-edit">
+            <summary class="btn btn-sm">Edit</summary>
+            <form method="post" action="/m/<%= member.token %>/wishlist/<%= it.id %>/edit" class="wl-add">
+              <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+              <input type="text" name="item_name" value="<%= it.name %>" maxlength="200" required>
+              <input type="url" name="item_link" value="<%= it.link || '' %>" placeholder="Link (optional)" maxlength="500">
+              <input type="text" name="item_note" value="<%= it.note || '' %>" placeholder="Note (optional)" maxlength="500">
+              <button class="btn btn-sm btn-primary" type="submit">Save</button>
+            </form>
+          </details>
+          <form class="inline-form" method="post" action="/m/<%= member.token %>/wishlist/<%= it.id %>/delete" data-confirm="Remove this idea?">
+            <input type="hidden" name="_csrf" value="<%= csrfToken %>"><button class="btn btn-sm btn-danger" title="Remove">✕</button>
+          </form>
+        </div>
+      </div>
+      <% }) %>
+    </div>
+  <% } %>
+  <form method="post" action="/m/<%= member.token %>/wishlist" class="wl-add" style="margin-top:12px">
+    <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+    <input type="text" name="item_name" placeholder="Gift idea (required)" maxlength="200" required>
+    <input type="url" name="item_link" placeholder="Link (optional)" maxlength="500">
+    <input type="text" name="item_note" placeholder="Note — size, colour… (optional)" maxlength="500">
+    <button class="btn btn-primary" type="submit">+ Add idea</button>
+  </form>
+</div>
+<% } %>
+
+<%- include('../partials/foot') %>

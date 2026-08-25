@@ -1,0 +1,23 @@
+<%- include('../partials/head', { title: 'Your Secret Santas' }) %>
+<%- include('../partials/appnav') %>
+<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px">
+  <h1 style="margin:0">Your Secret Santas</h1>
+  <a class="btn btn-primary" href="/organiser/events/new">+ New</a>
+</div>
+<% if (!events.length) { %>
+  <div class="card"><p class="muted">No events yet — create your first Secret Santa.</p></div>
+<% } %>
+<% events.forEach(function (e) { %>
+  <div class="card">
+    <div style="display:flex; justify-content:space-between; gap:10px; align-items:flex-start">
+      <div>
+        <h2 style="margin-bottom:4px"><%= e.name %></h2>
+        <% if (e.exchange_date) { %><div class="meta"><span class="ico">🎄</span><span><%= fmtDate(e.exchange_date) %></span></div><% } %>
+        <div class="muted small"><%= e.member_count %> member<%= e.member_count === 1 ? '' : 's' %></div>
+      </div>
+      <span class="tag tag-<%= e.status %>"><%= e.status %></span>
+    </div>
+    <div class="btn-row" style="margin-top:12px"><a class="btn btn-sm" href="/organiser/events/<%= e.id %>">Manage</a></div>
+  </div>
+<% }) %>
+<%- include('../partials/foot') %>
